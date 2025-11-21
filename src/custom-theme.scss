@@ -1,0 +1,250 @@
+// Custom Angular Material Theme Configuration
+// Color Palette: Platinum, Dusk Blue, Steel Blue, Icy Blue, Grey Olive
+
+@use '@angular/material' as mat;
+
+// ============================================================================
+// TYPOGRAPHY CONFIGURATION
+// ============================================================================
+
+// Import Google Fonts (add this to your index.html):
+// <link rel="preconnect" href="https://fonts.googleapis.com">
+// <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+// <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+$custom-typography: mat.m2-define-typography-config(
+  $font-family: '"Inter", "Roboto", sans-serif',
+  $headline-1: mat.m2-define-typography-level(96px, 96px, 300, $letter-spacing: -1.5px),
+  $headline-2: mat.m2-define-typography-level(60px, 60px, 300, $letter-spacing: -0.5px),
+  $headline-3: mat.m2-define-typography-level(48px, 50px, 400, $letter-spacing: 0px),
+  $headline-4: mat.m2-define-typography-level(34px, 40px, 400, $letter-spacing: 0.25px),
+  $headline-5: mat.m2-define-typography-level(24px, 32px, 500, $letter-spacing: 0px),
+  $headline-6: mat.m2-define-typography-level(20px, 32px, 600, $letter-spacing: 0.15px),
+  $subtitle-1: mat.m2-define-typography-level(16px, 28px, 500, $letter-spacing: 0.15px),
+  $subtitle-2: mat.m2-define-typography-level(14px, 24px, 600, $letter-spacing: 0.1px),
+  $body-1: mat.m2-define-typography-level(16px, 24px, 400, $letter-spacing: 0.5px),
+  $body-2: mat.m2-define-typography-level(14px, 20px, 400, $letter-spacing: 0.25px),
+  $caption: mat.m2-define-typography-level(12px, 20px, 400, $letter-spacing: 0.4px),
+  $button: mat.m2-define-typography-level(14px, 14px, 600, $letter-spacing: 0.75px),
+  $overline: mat.m2-define-typography-level(10px, 16px, 500, $letter-spacing: 1.5px),
+);
+
+// ============================================================================
+// COLOR PALETTE DEFINITION
+// ============================================================================
+
+// Primary Palette - Dusk Blue (#274c77)
+$dusk-blue-palette: (
+  50: #e5eaf0,
+  100: #becbd9,
+  200: #93a9c0,
+  300: #6787a7,
+  400: #476d94,
+  500: #274c77,  // Main color
+  600: #23456f,
+  700: #1d3c64,
+  800: #17335a,
+  900: #0e2447,
+  A100: #7ca7ff,
+  A200: #4985ff,
+  A400: #1663ff,
+  A700: #0054fc,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: white,
+    400: white,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, 0.87),
+    A200: white,
+    A400: white,
+    A700: white,
+  )
+);
+
+// Accent Palette - Steel Blue (#6096ba)
+$steel-blue-palette: (
+  50: #ecf4f9,
+  100: #cfe3f0,
+  200: #afd1e6,
+  300: #8fbedc,
+  400: #77b0d5,
+  500: #6096ba,  // Main color
+  600: #588eb3,
+  700: #4e83ab,
+  800: #4479a3,
+  900: #336894,
+  A100: #e3f2ff,
+  A200: #b0ddff,
+  A400: #7dc7ff,
+  A700: #63bdff,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, 0.87),
+    A200: rgba(black, 0.87),
+    A400: rgba(black, 0.87),
+    A700: rgba(black, 0.87),
+  )
+);
+
+// Warn Palette - Keep Material Red for warnings/errors
+$warn-palette: mat.$m2-red-palette;
+
+// ============================================================================
+// THEME CREATION
+// ============================================================================
+
+// Include the common styles for Angular Material (no arguments)
+@include mat.core();
+
+// Define the light theme
+$light-primary: mat.m2-define-palette($dusk-blue-palette, 500, 300, 700);
+$light-accent: mat.m2-define-palette($steel-blue-palette, 500, 300, 700);
+$light-warn: mat.m2-define-palette($warn-palette);
+
+$light-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $light-primary,
+    accent: $light-accent,
+    warn: $light-warn,
+  ),
+  typography: $custom-typography,
+  density: 0,
+));
+
+// Define the dark theme
+$dark-primary: mat.m2-define-palette($dusk-blue-palette, 300, 200, 500);
+$dark-accent: mat.m2-define-palette($steel-blue-palette, 300, 200, 500);
+$dark-warn: mat.m2-define-palette($warn-palette);
+
+$dark-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $dark-primary,
+    accent: $dark-accent,
+    warn: $dark-warn,
+  ),
+  typography: $custom-typography,
+  density: 0,
+));
+
+// ============================================================================
+// APPLY THEMES
+// ============================================================================
+
+// Apply the light theme by default
+@include mat.all-component-themes($light-theme);
+
+// Apply dark theme when .dark-theme class is present
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+}
+
+// ============================================================================
+// CUSTOM CSS VARIABLES FOR YOUR PALETTE
+// ============================================================================
+
+:root {
+  // Color Palette
+  --color-platinum: #e7ecef;
+  --color-dusk-blue: #274c77;
+  --color-steel-blue: #6096ba;
+  --color-icy-blue: #a3cef1;
+  --color-grey-olive: #8b8c89;
+
+  // Semantic Colors
+  --color-primary: var(--color-dusk-blue);
+  --color-accent: var(--color-steel-blue);
+  --color-background: var(--color-platinum);
+  --color-surface: #ffffff;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: var(--color-grey-olive);
+  --color-text-hint: #757575;
+  --color-divider: rgba(0, 0, 0, 0.12);
+
+  // Shadows
+  --shadow-sm: 0 1px 3px rgba(39, 76, 119, 0.12), 0 1px 2px rgba(39, 76, 119, 0.08);
+  --shadow-md: 0 4px 6px rgba(39, 76, 119, 0.12), 0 2px 4px rgba(39, 76, 119, 0.08);
+  --shadow-lg: 0 10px 15px rgba(39, 76, 119, 0.15), 0 4px 6px rgba(39, 76, 119, 0.1);
+  --shadow-xl: 0 20px 25px rgba(39, 76, 119, 0.15), 0 10px 10px rgba(39, 76, 119, 0.08);
+
+  // Spacing (8px grid system)
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  // Border Radius
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  // Transitions
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Dark theme variables
+.dark-theme {
+  --color-background: #1a1a1a;
+  --color-surface: #2a2a2a;
+  --color-text-primary: #e7ecef;
+  --color-text-secondary: #b0b0b0;
+  --color-text-hint: #808080;
+  --color-divider: rgba(255, 255, 255, 0.12);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.4);
+}
+
+// ============================================================================
+// UTILITY CLASSES
+// ============================================================================
+
+// Background Colors
+.bg-platinum { background-color: var(--color-platinum); }
+.bg-dusk-blue { background-color: var(--color-dusk-blue); }
+.bg-steel-blue { background-color: var(--color-steel-blue); }
+.bg-icy-blue { background-color: var(--color-icy-blue); }
+.bg-grey-olive { background-color: var(--color-grey-olive); }
+
+// Text Colors
+.text-platinum { color: var(--color-platinum); }
+.text-dusk-blue { color: var(--color-dusk-blue); }
+.text-steel-blue { color: var(--color-steel-blue); }
+.text-icy-blue { color: var(--color-icy-blue); }
+.text-grey-olive { color: var(--color-grey-olive); }
+
+// Shadows
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+
+// Border Radius
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-full); }
