@@ -7,11 +7,6 @@
 // TYPOGRAPHY CONFIGURATION
 // ============================================================================
 
-// Import Google Fonts (add this to your index.html):
-// <link rel="preconnect" href="https://fonts.googleapis.com">
-// <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-// <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-
 $custom-typography: mat.m2-define-typography-config(
   $font-family: '"Inter", "Roboto", sans-serif',
   $headline-1: mat.m2-define-typography-level(96px, 96px, 300, $letter-spacing: -1.5px),
