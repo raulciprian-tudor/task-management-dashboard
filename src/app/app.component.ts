@@ -1,28 +1,22 @@
-import { Component } from '@angular/core';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-
+import { Component, inject, OnInit } from '@angular/core';
+import { SupabaseService } from './core/services/supabase.service';
 @Component({
   selector: 'app-root',
   imports: [
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatChipsModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
-  title = 'my-app';
+export class AppComponent implements OnInit {
+  private supabase = inject(SupabaseService);
+
+  ngOnInit(): void {
+    console.log('✅ Supabase Client Initialized:', this.supabase.client);
+    console.log('🔐 Current User:', this.supabase.currentUser);
+
+    // Subscribe to auth state changes
+    this.supabase.currentUser$.subscribe(user => {
+      console.log('👤 Auth State Changed:', user);
+    });
+  }
 }
