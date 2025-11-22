@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common'
-import { Component, inject, OnInit } from '@angular/core'
+import { Component, OnInit, effect } from '@angular/core'
 import {
   FormBuilder,
   FormGroup,
@@ -21,25 +21,11 @@ import { AuthService } from '../../../../core/services/auth.service'
  * LoginComponent
  *
  * Handles user authentication via email/password
- *
- * Features:
- * - Reactive form with validation
- * - Remember me functionality
- * - Password visibility toggle
- * - Loading state during authentication
- * - Error message display
- * - Responsive split-view layout
- *
- * Flow:
- * 1. User enters email and password
- * 2. Form validates input
- * 3. On submit, AuthService.signIn() is called
- * 4. If successful, user is redirected to dashboard
- * 5. If failed, error message is displayed
+ * Updated to use Angular Signals for reactive state management
  */
-
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -56,14 +42,22 @@ import { AuthService } from '../../../../core/services/auth.service'
   styleUrl: './login.component.scss',
 })
 export class LoginComponent implements OnInit {
-  private fb = inject(FormBuilder)
-  private authService = inject(AuthService)
-  private router = inject(Router)
-
   loginForm!: FormGroup
-  isLoading = false
-  errorMessage: string | null = null
   hidePassword = true
+
+  // Access auth service signals directly in template
+  constructor(
+    private fb: FormBuilder,
+    public authService: AuthService,
+    private router: Router
+  ) {
+    // Effect to handle successful authentication
+    effect(() => {
+      if (this.authService.isAuthenticated()) {
+        this.router.navigate(['/dashboard'])
+      }
+    })
+  }
 
   ngOnInit(): void {
     this.initializeForm()
@@ -71,11 +65,6 @@ export class LoginComponent implements OnInit {
 
   /**
    * Initialize the login form with validation rules
-   *
-   * Validation:
-   * - Email: required, valid email format
-   * - Password: required, minimum 6 characters
-   * - Remember me: optional boolean
    */
   private initializeForm(): void {
     this.loginForm = this.fb.group({
@@ -87,13 +76,6 @@ export class LoginComponent implements OnInit {
 
   /**
    * Handle form submission
-   *
-   * Flow:
-   * 1. Validate form
-   * 2. Show loading state
-   * 3. Call AuthService.signIn()
-   * 4. Handle response (success or error)
-   * 5. Redirect to dashboard on success
    */
   onSubmit(): void {
     if (this.loginForm.invalid) {
@@ -101,8 +83,8 @@ export class LoginComponent implements OnInit {
       return
     }
 
-    this.isLoading = true
-    this.errorMessage = null
+    // Clear any previous errors
+    this.authService.clearError()
 
     const credentials: SignInRequest = {
       email: this.loginForm.value.email,
@@ -111,19 +93,11 @@ export class LoginComponent implements OnInit {
 
     this.authService.signIn(credentials).subscribe({
       next: (response) => {
-        if (response.success) {
-          // TODO: Implement "Remember me" functionality with local storage
-          this.router.navigate(['/dashboard'])
-        } else {
-          this.errorMessage =
-            response.error || 'Sign in failed. Please try again.'
-          this.isLoading = false
-        }
+        // Success is handled by the effect above
+        // Errors are handled by the auth service and displayed via signals
       },
       error: (error) => {
-        this.errorMessage = 'An unexpected error occured. Please try again.'
-        this.isLoading = false
-        console.error('Login error: ', error)
+        console.error('Login error:', error)
       },
     })
   }

@@ -1,6 +1,6 @@
-import { inject, Injectable } from '@angular/core'
+import { computed, Injectable, signal } from '@angular/core'
 import { Router } from '@angular/router'
-import { BehaviorSubject, from, Observable, of } from 'rxjs'
+import { from, Observable, of } from 'rxjs'
 import { catchError, map, switchMap } from 'rxjs/operators'
 import {
   AuthResponse,
@@ -14,97 +14,84 @@ import { SupabaseService } from './supabase.service'
 /**
  * AuthService
  *
- * Handles all authentication operations and user profile management.
+ * Handles all authentication operations and user profile management using Angular Signals.
  *
  * Responsibilities:
  * - User registration (sign-up)
  * - User login (sign-in)
  * - User logout (sign-out)
  * - Profile fetching and caching
- * - Auth state management
+ * - Auth state management with Signals
+ * - Session persistence
  *
  * Flow:
  * 1. User signs up → Supabase creates auth.users entry
  * 2. Database trigger creates profile automatically
- * 3. Service fetches profile and stores in BehaviorSubject
- * 4. Components subscribe to profile$ to react to auth changes
+ * 3. Service fetches profile and stores in Signal
+ * 4. Components read from computed signals for reactive UI
  *
  */
-
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private supabase = inject(SupabaseService)
-  private router = inject(Router)
+  /**
+   * Signal holding current user's profile
+   * Null when user is not authenticated
+   */
+  private profileSignal = signal<Profile | null>(null)
 
   /**
-   * BehaviorSubject holding current user's profile
-   * Emits null when user is not authenticated
+   * Signal for loading state during auth operations
    */
-  private profileSubject = new BehaviorSubject<Profile | null>(null)
+  private loadingSignal = signal<boolean>(false)
 
   /**
-   * Observable stream of current user profile
-   * Components subscribe to this for reactive auth state
+   * Signal for auth error messages
    */
-  public readonly profile$: Observable<Profile | null> =
-    this.profileSubject.asObservable()
+  private errorSignal = signal<string | null>(null)
 
   /**
-   * Loading state for auth operations
+   * Public readonly signals (computed for better encapsulation)
    */
-  private loadingSubject = new BehaviorSubject<boolean>(false)
-  public readonly loading$: Observable<boolean> =
-    this.loadingSubject.asObservable()
+  public readonly currentProfile = this.profileSignal.asReadonly()
+  public readonly isLoading = this.loadingSignal.asReadonly()
+  public readonly error = this.errorSignal.asReadonly()
 
-  constructor() {
-    // Initialize profile on service creation
-    this.initializeProfile()
+  /**
+   * Computed signal for authentication status
+   */
+  public readonly isAuthenticated = computed(
+    () => this.profileSignal() !== null
+  )
+
+  /**
+   * Computed signal for admin status
+   */
+  public readonly isAdmin = computed(
+    () => this.profileSignal()?.role === UserRole.ADMIN
+  )
+
+  constructor(private supabase: SupabaseService, private router: Router) {
+    // Initialize profile on service creation and setup session persistence
+    this.initializeAuth()
   }
 
   /**
-   * Synchronous getter for current profile
-   *
-   * @returns {Profile | null} Current user profile or null
-   */
-  get currentProfile(): Profile | null {
-    return this.profileSubject.value
-  }
-
-  /**
-   * Check if user is authenticated
-   *
-   * @returns {boolean} True if user is logged in
-   */
-  isAuthenticated(): boolean {
-    return this.currentProfile !== null
-  }
-
-  /**
-   * Check if current user is admin
-   *
-   * @returns {boolean} True if user has admin role
-   */
-  isAdmin(): boolean {
-    return this.currentProfile?.role === UserRole.ADMIN
-  }
-
-  /**
-   * Initialize profile from current auth session
-   * Called on service creation and after auth state changes
+   * Initialize authentication state and setup session persistence
    *
    * Flow:
-   * 1. Check if user is authenticated in Supabase
-   * 2. If yes, fetch their profile from database
-   * 3. Update profileSubject with fetched data
+   * 1. Listen to Supabase auth state changes
+   * 2. Restore session on app load (if exists)
+   * 3. Fetch profile when user is authenticated
+   * 4. Keep auth state in sync
    */
-  private initializeProfile(): void {
+  private initializeAuth(): void {
     this.supabase.currentUser$.subscribe(async (user) => {
       if (user) {
         await this.fetchProfile(user.id)
       } else {
-        this.profileSubject.next(null)
+        this.profileSignal.set(null)
       }
     })
   }
@@ -125,11 +112,20 @@ export class AuthService {
 
       if (error) throw error
 
-      this.profileSubject.next(data as Profile)
+      this.profileSignal.set(data as Profile)
+      this.errorSignal.set(null)
     } catch (error) {
       console.error('Error fetching profile:', error)
-      this.profileSubject.next(null)
+      this.profileSignal.set(null)
+      this.errorSignal.set('Failed to load user profile')
     }
+  }
+
+  /**
+   * Clear any existing error message
+   */
+  clearError(): void {
+    this.errorSignal.set(null)
   }
 
   /**
@@ -145,7 +141,8 @@ export class AuthService {
    * @returns {Observable<AuthResponse>} Result of sign up operation
    */
   signUp(request: SignUpRequest): Observable<AuthResponse> {
-    this.loadingSubject.next(true)
+    this.loadingSignal.set(true)
+    this.errorSignal.set(null)
 
     return from(
       this.supabase.client.auth.signUp({
@@ -161,14 +158,16 @@ export class AuthService {
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
+          this.errorSignal.set(this.formatAuthError(error.message))
           return of({
             success: false,
-            error: error.message,
+            error: this.formatAuthError(error.message),
             profile: null,
           })
         }
 
         if (!data.user) {
+          this.errorSignal.set('User creation failed. Please try again.')
           return of({
             success: false,
             error: 'User creation failed',
@@ -182,19 +181,23 @@ export class AuthService {
           map(() => ({
             success: true,
             error: null,
-            profile: this.currentProfile,
+            profile: this.profileSignal(),
           }))
         )
       }),
       catchError((error) => {
+        const errorMessage = this.formatAuthError(
+          error.message || 'An unexpected error occurred'
+        )
+        this.errorSignal.set(errorMessage)
         return of({
           success: false,
-          error: error.message || 'An unexpected error occurred',
+          error: errorMessage,
           profile: null,
         })
       }),
       map((response) => {
-        this.loadingSubject.next(false)
+        this.loadingSignal.set(false)
         return response
       })
     )
@@ -206,14 +209,15 @@ export class AuthService {
    * Flow:
    * 1. Authenticate with Supabase Auth
    * 2. Fetch user's profile from database
-   * 3. Update profileSubject
+   * 3. Update profileSignal
    * 4. Return success response
    *
    * @param {SignInRequest} request - Sign in credentials
    * @returns {Observable<AuthResponse>} Result of sign in operation
    */
   signIn(request: SignInRequest): Observable<AuthResponse> {
-    this.loadingSubject.next(true)
+    this.loadingSignal.set(true)
+    this.errorSignal.set(null)
 
     return from(
       this.supabase.client.auth.signInWithPassword({
@@ -223,14 +227,16 @@ export class AuthService {
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
+          this.errorSignal.set(this.formatAuthError(error.message))
           return of({
             success: false,
-            error: error.message,
+            error: this.formatAuthError(error.message),
             profile: null,
           })
         }
 
         if (!data.user) {
+          this.errorSignal.set('Sign in failed. Please check your credentials.')
           return of({
             success: false,
             error: 'Sign in failed',
@@ -243,19 +249,23 @@ export class AuthService {
           map(() => ({
             success: true,
             error: null,
-            profile: this.currentProfile,
+            profile: this.profileSignal(),
           }))
         )
       }),
       catchError((error) => {
+        const errorMessage = this.formatAuthError(
+          error.message || 'An unexpected error occurred'
+        )
+        this.errorSignal.set(errorMessage)
         return of({
           success: false,
-          error: error.message || 'An unexpected error occurred',
+          error: errorMessage,
           profile: null,
         })
       }),
       map((response) => {
-        this.loadingSubject.next(false)
+        this.loadingSignal.set(false)
         return response
       })
     )
@@ -265,29 +275,36 @@ export class AuthService {
    * Sign out current user
    *
    * Flow:
-   * 1. Sign out from Supabase Auth
+   * 1. Sign out from Supabase Auth (clears session)
    * 2. Clear profile state
-   * 3. Redirect to login page
+   * 3. Clear any errors
+   * 4. Redirect to login page
    *
    * @returns {Promise<void>}
    */
   async signOut(): Promise<void> {
     try {
-      this.loadingSubject.next(true)
+      this.loadingSignal.set(true)
+      this.errorSignal.set(null)
 
       const { error } = await this.supabase.client.auth.signOut()
 
       if (error) throw error
 
       // Clear profile state
-      this.profileSubject.next(null)
+      this.profileSignal.set(null)
 
       // Redirect to login
       this.router.navigate(['/auth/login'])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing out:', error)
+      this.errorSignal.set('Failed to sign out. Please try again.')
+
+      // Even if there's an error, try to clear local state and redirect
+      this.profileSignal.set(null)
+      this.router.navigate(['/auth/login'])
     } finally {
-      this.loadingSubject.next(false)
+      this.loadingSignal.set(false)
     }
   }
 
@@ -298,11 +315,14 @@ export class AuthService {
    * @returns {Observable<boolean>} True if update succeeded
    */
   updateProfile(updates: Partial<Profile>): Observable<boolean> {
-    const userId = this.currentProfile?.id
+    const userId = this.profileSignal()?.id
 
     if (!userId) {
+      this.errorSignal.set('No user logged in')
       return of(false)
     }
+
+    this.loadingSignal.set(true)
 
     return from(
       this.supabase.client.from('profiles').update(updates).eq('id', userId)
@@ -310,13 +330,56 @@ export class AuthService {
       switchMap(({ error }) => {
         if (error) {
           console.error('Error updating profile:', error)
+          this.errorSignal.set('Failed to update profile')
           return of(false)
         }
 
         // Refresh profile after update
         return from(this.fetchProfile(userId)).pipe(map(() => true))
       }),
-      catchError(() => of(false))
+      catchError(() => {
+        this.errorSignal.set('Failed to update profile')
+        return of(false)
+      }),
+      map((result) => {
+        this.loadingSignal.set(false)
+        return result
+      })
     )
+  }
+
+  /**
+   * Format auth error messages to be more user-friendly
+   *
+   * @param {string} error - Raw error message from Supabase
+   * @returns {string} User-friendly error message
+   */
+  private formatAuthError(error: string): string {
+    // Common Supabase auth errors mapped to user-friendly messages
+    const errorMap: { [key: string]: string } = {
+      'Invalid login credentials':
+        'Invalid email or password. Please try again.',
+      'Email not confirmed':
+        'Please verify your email address before signing in.',
+      'User already registered': 'An account with this email already exists.',
+      'Password should be at least 6 characters':
+        'Password must be at least 6 characters long.',
+      'Unable to validate email address: invalid format':
+        'Please enter a valid email address.',
+      'Database error saving new user':
+        'Registration failed. Please try again.',
+      'signup is disabled':
+        'Registration is currently disabled. Please contact support.',
+    }
+
+    // Check if error message matches any known patterns
+    for (const [key, value] of Object.entries(errorMap)) {
+      if (error.includes(key)) {
+        return value
+      }
+    }
+
+    // Return original error if no match found
+    return error
   }
 }

@@ -43,9 +43,9 @@
       </div>
 
       <!-- Error Message -->
-      <div class="error-message" *ngIf="errorMessage">
+      <div class="error-message" *ngIf="authService.error()">
         <mat-icon>error_outline</mat-icon>
-        <span>{{ errorMessage }}</span>
+        <span>{{ authService.error() }}</span>
       </div>
 
       <!-- Register Form -->
@@ -150,10 +150,10 @@
           color="primary"
           type="submit"
           class="submit-button full-width"
-          [disabled]="isLoading"
+          [disabled]="authService.isLoading()"
         >
-          <span *ngIf="!isLoading">Create Account</span>
-          <mat-spinner *ngIf="isLoading" diameter="24"></mat-spinner>
+          <span *ngIf="!authService.isLoading()">Create Account</span>
+          <mat-spinner *ngIf="authService.isLoading()" diameter="24"></mat-spinner>
         </button>
 
         <!-- Login Link -->
