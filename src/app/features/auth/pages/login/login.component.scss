@@ -1,0 +1,312 @@
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+// ============================================================================
+// LEFT SIDE: ILLUSTRATION/BRANDING
+// ============================================================================
+
+.auth-illustration {
+  flex: 1;
+  background: linear-gradient(135deg, var(--color-dusk-blue) 0%, var(--color-steel-blue) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xl);
+  position: relative;
+  overflow: hidden;
+
+  // Subtle background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .illustration-content {
+    position: relative;
+    z-index: 1;
+    max-width: 500px;
+    color: white;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+
+    .brand-icon {
+      width: 64px;
+      height: 64px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+
+      mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        color: white;
+      }
+    }
+
+    .brand-name {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -1px;
+    }
+  }
+
+  .brand-tagline {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-bottom: var(--spacing-2xl);
+    font-weight: 300;
+  }
+
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 16px;
+      opacity: 0.95;
+
+      mat-icon {
+        color: var(--color-icy-blue);
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// RIGHT SIDE: FORM
+// ============================================================================
+
+.auth-form-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  background-color: var(--color-surface);
+}
+
+.auth-form-wrapper {
+  width: 100%;
+  max-width: 440px;
+}
+
+.mobile-brand {
+  display: none; // Hidden on desktop, shown on mobile
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+
+  .brand-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--color-dusk-blue) 0%, var(--color-steel-blue) 100%);
+    border-radius: var(--radius-lg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-sm);
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: white;
+    }
+  }
+
+  .brand-name {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+
+  h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+}
+
+// ============================================================================
+// ERROR MESSAGE
+// ============================================================================
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-lg);
+  color: #c62828;
+  font-size: 14px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// ============================================================================
+// FORM STYLES
+// ============================================================================
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  .full-width {
+    width: 100%;
+  }
+
+  mat-form-field {
+    mat-icon[matPrefix] {
+      color: var(--color-text-secondary);
+      margin-right: var(--spacing-sm);
+    }
+  }
+
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--spacing-sm) 0;
+
+    .forgot-link {
+      color: var(--color-steel-blue);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--color-dusk-blue);
+      }
+    }
+  }
+
+  .submit-button {
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    margin-top: var(--spacing-sm);
+
+    mat-spinner {
+      margin: 0 auto;
+    }
+  }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-divider);
+
+    p {
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .auth-link {
+      color: var(--color-steel-blue);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--color-dusk-blue);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// RESPONSIVE: MOBILE
+// ============================================================================
+
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+  }
+
+  .auth-illustration {
+    display: none; // Hide illustration on mobile
+  }
+
+  .auth-form-container {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .mobile-brand {
+    display: block; // Show mobile brand
+  }
+
+  .auth-header {
+    h2 {
+      font-size: 28px;
+    }
+
+    p {
+      font-size: 14px;
+    }
+  }
+}
+
+// ============================================================================
+// DARK THEME SUPPORT
+// ============================================================================
+
+.dark-theme {
+  .error-message {
+    background-color: rgba(244, 67, 54, 0.1);
+    border-left-color: #f44336;
+    color: #ff5252;
+  }
+}

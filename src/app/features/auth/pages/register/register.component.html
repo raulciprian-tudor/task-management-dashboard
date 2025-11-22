@@ -1,0 +1,168 @@
+<div class="auth-container">
+  <!-- Left Side: Illustration/Branding -->
+  <div class="auth-illustration">
+    <div class="illustration-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <mat-icon>dashboard</mat-icon>
+        </div>
+        <h1 class="brand-name">TaskFlow</h1>
+      </div>
+      <p class="brand-tagline">Join thousands of teams already using TaskFlow</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Create unlimited boards</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Collaborate with your team</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Track progress in real-time</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Register Form -->
+  <div class="auth-form-container">
+    <div class="auth-form-wrapper">
+      <!-- Mobile Logo (hidden on desktop) -->
+      <div class="mobile-brand">
+        <div class="brand-icon">
+          <mat-icon>dashboard</mat-icon>
+        </div>
+        <h1 class="brand-name">TaskFlow</h1>
+      </div>
+
+      <div class="auth-header">
+        <h2>Create your account</h2>
+        <p>Start organizing your team's work today</p>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="errorMessage">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Register Form -->
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Full Name Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Full Name</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="fullName"
+            placeholder="John Doe"
+            autocomplete="name"
+          >
+          <mat-icon matPrefix>person</mat-icon>
+          <mat-error *ngIf="fullName?.hasError('required')">
+            Full name is required
+          </mat-error>
+          <mat-error *ngIf="fullName?.hasError('minlength')">
+            Name must be at least 2 characters
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Email Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          >
+          <mat-icon matPrefix>email</mat-icon>
+          <mat-error *ngIf="email?.hasError('required')">
+            Email is required
+          </mat-error>
+          <mat-error *ngIf="email?.hasError('email')">
+            Please enter a valid email
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Password Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="At least 6 characters"
+            autocomplete="new-password"
+          >
+          <mat-icon matPrefix>lock</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="'Toggle password visibility'"
+          >
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="password?.hasError('required')">
+            Password is required
+          </mat-error>
+          <mat-error *ngIf="password?.hasError('minlength')">
+            Password must be at least 6 characters
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Confirm Password Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input
+            matInput
+            [type]="hideConfirmPassword ? 'password' : 'text'"
+            formControlName="confirmPassword"
+            placeholder="Re-enter your password"
+            autocomplete="new-password"
+          >
+          <mat-icon matPrefix>lock</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="'Toggle password visibility'"
+          >
+            <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="confirmPassword?.hasError('required')">
+            Please confirm your password
+          </mat-error>
+          <mat-error *ngIf="!passwordsMatch && confirmPassword?.touched">
+            Passwords do not match
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Submit Button -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="submit-button full-width"
+          [disabled]="isLoading"
+        >
+          <span *ngIf="!isLoading">Create Account</span>
+          <mat-spinner *ngIf="isLoading" diameter="24"></mat-spinner>
+        </button>
+
+        <!-- Login Link -->
+        <div class="auth-footer">
+          <p>Already have an account?
+            <a routerLink="/auth/login" class="auth-link">Sign in</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
